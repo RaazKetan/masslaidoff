@@ -2,6 +2,8 @@
 
 ## Current direction — September 28, 2026
 
+Use the official Magic UI component source for buttons, cards and motion across the landing page and workspace. Keep effects restrained: brief Blur Fade entrances, Ripple Button interaction feedback, subtle Magic Card highlights and a thin Scroll Progress indicator. Respect reduced-motion preferences. Native form controls cover elements not offered by Magic UI. See COMPONENTS.md for provenance and the component map.
+
 The current user-requested design supersedes the older dark concept below. Use **Google Sans**, a white canvas (`#FFFFFF`), pale gray navigation (`#F8F9FB`), charcoal text (`#25272B`), muted secondary text (`#73777F`), hairline separators (`#E8E9EC`) and one blue interaction accent (`#285DE5`). Use spacious candidate rows, a dedicated filter column, a quiet navigation rail, and flat surfaces. Avoid decorative gradients, large card grids, generic statistics and ornamental imagery. Keep candidate discovery visible in the first viewport. Use the same styling for shortlist, profile forms, manager reviews and native dialogs. See ARCHITECTURE.md for the current product flows and implementation boundaries.
 
 The remaining sections are retained as the earlier design reference, not the active visual specification.

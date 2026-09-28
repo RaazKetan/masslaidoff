@@ -1,0 +1,20 @@
+.magic-button-host{display:contents}
+.magic-control{position:relative;overflow:hidden;isolation:isolate}
+.magic-control>div.relative{display:contents}
+.magic-control>span.pointer-events-none{z-index:-1}
+.magic-surface{border-radius:8px}
+.magic-candidate{border-radius:0;border:0;border-bottom:1px solid var(--line)}
+.magic-candidate .candidate{border-bottom:0;animation:none}
+.magic-manager-card .manager-card,.magic-sample-profile .sample-profile{border:0}
+.magic-hiring-panel{background:#f4f7fd!important}
+.magic-hiring-panel>div.bg-background{background:#f4f7fd}
+.magic-hiring-panel .hiring-panel{background:transparent;border-radius:0}
+.nextseat-scroll-progress{background:#285de5;background-image:none;height:2px}
+@media(max-width:700px){.hero h1{font-size:44px;letter-spacing:-2.3px}}
+.navitem.magic-control>div.relative{display:flex;width:100%;align-items:center;gap:12px}
+.page-heading>div>p{font-size:16px;color:var(--muted);margin:0}
+@media(prefers-reduced-motion:reduce){
+ .animate-rippling{animation:none!important}
+ .magic-surface>div.pointer-events-none{display:none}
+ [style*="blur("]{filter:none!important;transform:none!important}
+}

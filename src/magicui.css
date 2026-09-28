@@ -1,0 +1,13 @@
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";
+@source "./components";
+@theme {
+ --color-background:#ffffff;
+ --color-primary:#285de5;
+ --color-border:#e8e9ec;
+ --animate-rippling:rippling var(--duration) ease-out;
+}
+@keyframes rippling {
+ 0%{opacity:0.35}
+ 100%{transform:scale(2);opacity:0}
+}
