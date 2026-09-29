@@ -232,7 +232,9 @@ const samplePeople = [
 let people = [...samplePeople];
 let saved = new Set();
 let page = 'discover';
+let activeProfileType = 'candidate'; // 'candidate' or 'recruiter'
 let draft = null;
+let recruiterDraft = null;
 let resume = null;
 let toastTimer;
 let currentAccount = null;
@@ -814,142 +816,143 @@ async function renderStats() {
 }
 
 // ---------------------------------------------------------------------------
-// Render candidate profile page
+// Render profile page (Job Seeker or Hiring Team)
 // ---------------------------------------------------------------------------
 function renderProfile() {
-  if (currentAccount?.account_type === 'recruiter') {
-    renderRecruiterProfile();
+  const profileContainer = $('#profile-page');
+  if (!profileContainer) return;
+
+  const switcherHtml = `
+    <div class="profile-type-switcher">
+      <button type="button" class="profile-type-tab ${activeProfileType === 'candidate' ? 'active' : ''}" data-switch-profile="candidate">
+        ${icon('user')}
+        <div>
+          <strong>Job Seeker Profile</strong>
+          <small>Looking for a job · share your experience & résumé</small>
+        </div>
+      </button>
+      <button type="button" class="profile-type-tab ${activeProfileType === 'recruiter' ? 'active' : ''}" data-switch-profile="recruiter">
+        ${icon('briefcase')}
+        <div>
+          <strong>Hiring Team Profile</strong>
+          <small>Hiring talent · setup company access & discover people</small>
+        </div>
+      </button>
+    </div>
+  `;
+
+  if (activeProfileType === 'recruiter') {
+    renderRecruiterProfile(switcherHtml);
     return;
   }
 
+  // Streamlined Job Seeker form without unneeded fields
   setHTML(
-    $('#profile-page'),
+    profileContainer,
     `
     <div class="profile-layout">
-      <form id="candidate-form" class="form-content">
-        <h2>Your profile essentials</h2>
+      <div>
+        ${switcherHtml}
+        <form id="candidate-form" class="form-content">
+          <div class="form-header-badge">
+            <span class="status-pill verified">Job seeker profile</span>
+            <h2>Tell your story</h2>
+            <p class="muted">Share your recent experience and résumé so hiring teams can discover you.</p>
+          </div>
 
-        <!-- Section 1: Essentials -->
-        <div class="form-row">
-          <label>Full name<input name="name" required autocomplete="name" placeholder="First and last name"></label>
-          <label>Headline or target role<input name="headline" required placeholder="e.g. Senior Frontend Engineer"></label>
-        </div>
-        <div class="form-row">
-          <label>Location<input name="location" required placeholder="City, country"></label>
-          <label>Years of experience<input name="years" type="number" min="0" max="60" required placeholder="0"></label>
-        </div>
-        <div class="form-row">
-          <label>Discipline<select name="discipline" required>
-            <option>Engineering</option>
-            <option>Design</option>
-            <option>Product</option>
-            <option>Data</option>
-            <option>Other</option>
+          <!-- Section 1: Essentials -->
+          <div class="form-row">
+            <label>Full name<input name="name" required autocomplete="name" placeholder="First and last name"></label>
+            <label>Location<input name="location" required placeholder="e.g. Bengaluru, San Francisco, London"></label>
+          </div>
+          <div class="form-row">
+            <label>Discipline<select name="discipline" required>
+              <option value="Engineering">Engineering</option>
+              <option value="Design">Design</option>
+              <option value="Product">Product</option>
+              <option value="Data">Data & Analytics</option>
+              <option value="Other">Other</option>
+            </select></label>
+            <label>Years of experience<input name="years" type="number" min="0" max="60" required placeholder="e.g. 5"></label>
+          </div>
+          <div class="form-row">
+            <label>Preferred locations (optional)<input name="preferred_locations" placeholder="Comma-separated cities or regions"></label>
+            <label>Available from<input name="available_from" type="date"></label>
+          </div>
+          <label class="checklabel"><input name="remote" type="checkbox">Open to remote work</label>
+          
+          <label>Short introduction<textarea name="about" rows="3" required placeholder="A brief intro about your background, what you enjoy building, and the kind of team you want to join next."></textarea></label>
+
+          <!-- Section 2: Latest employment -->
+          <h3 class="form-section-title">Most recent company & role</h3>
+          <div class="form-row">
+            <label>Company name<input name="company" required placeholder="e.g. Stripe, Google, Spotify"></label>
+            <label>Role title<input name="role_title" required placeholder="e.g. Senior Frontend Engineer, Staff Designer"></label>
+          </div>
+          <div class="form-row">
+            <label>Organization / Department (optional)<input name="org_name" placeholder="e.g. Payments, Core Infra"></label>
+            <label>Team name (optional)<input name="team_name" placeholder="e.g. Checkout flow, Design Systems"></label>
+          </div>
+          <div class="form-row">
+            <label>Start date<input name="started_on" type="date" required></label>
+            <label>End date<input name="ended_on" type="date"></label>
+          </div>
+
+          <!-- Section 3: Layoff details -->
+          <h3 class="form-section-title">Layoff details</h3>
+          <div class="form-row">
+            <label>Layoff notification date<input name="layoff_date" type="date"></label>
+            <label>Last working date<input name="last_working_date" type="date"></label>
+          </div>
+          <label>Restructuring category<select name="layoff_category">
+            <option value="undisclosed">Prefer not to say</option>
+            <option value="company_wide">Company-wide workforce reduction</option>
+            <option value="division">Division or business unit closure</option>
+            <option value="team">Team restructuring</option>
+            <option value="individual">Individual position elimination</option>
           </select></label>
-          <label>Industry<input name="industry" placeholder="e.g. FinTech, SaaS, Consumer"></label>
-        </div>
-        <div class="form-row">
-          <label>Preferred locations<input name="preferred_locations" placeholder="Comma-separated cities"></label>
-          <label>Available from<input name="available_from" type="date"></label>
-        </div>
-        <label class="checklabel"><input name="remote" type="checkbox">Open to remote work</label>
-        <label>Short introduction<textarea name="about" rows="3" required placeholder="A brief intro about your work, interests, and what you're looking for next."></textarea></label>
-        <label>Skills<input name="skills" placeholder="e.g. React, TypeScript, System Design, Team Leadership" required></label>
 
-        <!-- Section 2: Employment history -->
-        <h3 class="form-section-title">Latest employment</h3>
-        <div class="form-row">
-          <label>Company name<input name="company" required></label>
-          <label>Role title<input name="role_title" required></label>
-        </div>
-        <div class="form-row">
-          <label>Organization / Department<input name="org_name" placeholder="e.g. Core Product, Payments"></label>
-          <label>Team name<input name="team_name" placeholder="e.g. Checkout flow"></label>
-        </div>
-        <div class="form-row">
-          <label>Start date<input name="started_on" type="date" required></label>
-          <label>End date<input name="ended_on" type="date"></label>
-        </div>
-        <label>Role description<textarea name="short_description" rows="2" placeholder="Key responsibilities and achievements"></textarea></label>
+          <!-- Section 4: Former manager details (private) -->
+          <h3 class="form-section-title">Former manager details (private)</h3>
+          <div class="form-row">
+            <label>Manager's name (optional)<input name="manager" placeholder="Private — not shown to recruiters"></label>
+            <label>Manager's LinkedIn URL (optional)<input name="manager_linkedin" type="url" placeholder="https://www.linkedin.com/in/..."></label>
+          </div>
+          <p class="form-note">Manager details are private and used only for optional review context.</p>
 
-        <!-- Section 3: Layoff details -->
-        <h3 class="form-section-title">Layoff details</h3>
-        <div class="form-row">
-          <label>Layoff date<input name="layoff_date" type="date"></label>
-          <label>Last working date<input name="last_working_date" type="date"></label>
-        </div>
-        <label>Restructuring category<select name="layoff_category">
-          <option value="undisclosed">Prefer not to say</option>
-          <option value="company_wide">Company-wide workforce reduction</option>
-          <option value="division">Division or business unit closure</option>
-          <option value="team">Team restructuring</option>
-          <option value="individual">Individual position elimination</option>
-        </select></label>
+          <!-- Section 5: Documents & contact details -->
+          <h3 class="form-section-title">Documents & contact details</h3>
+          <label>Résumé (PDF, up to 10 MB)<input name="resume" type="file" accept="application/pdf,.pdf"></label>
+          <div class="form-row">
+            <label>Exit / Relieving letter (optional verification)<input name="exit_letter" type="file" accept="application/pdf,image/*"></label>
+            <label>Salary slip (optional verification)<input name="salary_slip" type="file" accept="application/pdf,image/*"></label>
+          </div>
+          <p class="form-note">Exit letters and salary slips are NEVER visible to recruiters — used solely for internal verification.</p>
 
-        <!-- Section 4: Private manager details -->
-        <h3 class="form-section-title">Manager details (private)</h3>
-        <div class="form-row">
-          <label>Former manager's name<input name="manager" placeholder="Private — not shown on directory"></label>
-          <label>Manager's LinkedIn URL<input name="manager_linkedin" type="url" placeholder="https://www.linkedin.com/in/..."></label>
-        </div>
-        <p class="form-note">Manager details are strictly private and used only for optional review moderation.</p>
+          <div class="form-row">
+            <label>Personal email (private)<input name="email" type="email" required autocomplete="email" placeholder="you@personal.com"></label>
+            <label>Phone number (private)<input name="phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210"></label>
+          </div>
+          <label>Former company email (optional verification challenge)<input name="workemail" type="email" placeholder="you@formercompany.com"></label>
 
-        <!-- Section 5: Documents & Contact Visibility -->
-        <h3 class="form-section-title">Documents & contact settings</h3>
-        <label>Résumé (PDF, up to 10 MB)<input name="resume" type="file" accept="application/pdf,.pdf"></label>
-        <div class="form-row">
-          <label>Exit / Relieving letter (verification only)<input name="exit_letter" type="file" accept="application/pdf,image/*"></label>
-          <label>Salary slip (verification only)<input name="salary_slip" type="file" accept="application/pdf,image/*"></label>
-        </div>
-        <p class="form-note">Exit letters and salary slips are NEVER visible to recruiters. They are deleted after verification.</p>
+          <!-- Action buttons -->
+          <div class="profile-actions" style="margin-top:28px;">
+            <button class="button primary" type="submit">Save profile ↗</button>
+            <button class="button" type="button" id="preview-recruiter-btn">${icon('eye')} Preview as recruiter</button>
+            <button class="button" type="button" id="publish-btn">Publish profile</button>
+            <button class="button" type="button" id="pause-btn" style="display:none">Pause profile</button>
+          </div>
 
-        <div class="form-row">
-          <label>Personal email (private)<input name="email" type="email" required autocomplete="email" placeholder="you@personal.com"></label>
-          <label>Phone number (private)<input name="phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210"></label>
-        </div>
-        <label>Former company email (verification challenge)<input name="workemail" type="email" placeholder="you@formercompany.com"></label>
+          <div id="profile-feedback" role="status"></div>
+        </form>
+      </div>
 
-        <div class="form-row">
-          <label>Contact visibility<select name="contact_visibility">
-            <option value="request_access" selected>Request access — approve before sharing</option>
-            <option value="verified_recruiters">Verified recruiters — visible immediately</option>
-            <option value="hidden">Hidden — discovery only, no contact</option>
-          </select></label>
-          <label>Résumé visibility<select name="resume_visibility">
-            <option value="request_access">Request access — approve before download</option>
-            <option value="hidden" selected>Private — share on request only</option>
-            <option value="verified_recruiters">Verified recruiters — visible immediately</option>
-          </select></label>
-        </div>
-
-        <!-- Section 6: Consent -->
-        <h3 class="form-section-title">Privacy & consent</h3>
-        <label class="checklabel"><input name="consent" type="checkbox" required>I want hiring teams to see my profile according to my visibility selections above.</label>
-        <label class="checklabel"><input name="stats_consent" type="checkbox" checked>I consent to anonymized data inclusion in public statistics (spec §16.7 threshold >= 10).</label>
-
-        <div class="profile-actions">
-          <button class="button primary" type="submit">Save profile ↗</button>
-          <button class="button" type="button" id="preview-recruiter-btn">${icon('eye')} Preview as recruiter</button>
-          <button class="button" type="button" id="publish-btn">Publish profile</button>
-          <button class="button" type="button" id="pause-btn" style="display:none">Pause profile</button>
-        </div>
-
-        <div id="profile-feedback" role="status"></div>
-      </form>
-
-      <aside class="profile-aside">
+      <aside class="profile-aside" style="margin-top: 76px;">
         ${icon('shield')}
         <h3>Your story, on your terms.</h3>
-        <p>Hiring teams see your experience, skills and availability.</p>
-        <p>Your personal email, work email, phone and résumé stay private until you choose to share them.</p>
-        <p>Exit letters and salary slips are <strong>never</strong> visible to recruiters.</p>
+        <p>Hiring teams see your experience, availability, and résumé.</p>
+        <p>Your personal email, work email, phone, exit letters, and salary slips are <strong>never</strong> visible to recruiters without your permission.</p>
         <p>Manager name and LinkedIn URL are <strong>private</strong>.</p>
-
-        <div class="aside-section">
-          <h4>Visibility defaults</h4>
-          <p><strong>Request access</strong> — Recruiters must introduce themselves before seeing personal contact details.</p>
-          <p><strong>Verified recruiters</strong> — Only verified corporate talent teams see approved contact details.</p>
-        </div>
       </aside>
     </div>
   `,
@@ -991,16 +994,16 @@ function renderProfile() {
       resume = resumeFile || resume;
       draft = Object.fromEntries([...new FormData(f)].filter(([k]) => !['resume', 'exit_letter', 'salary_slip'].includes(k)));
 
-      const skills = (draft.skills || '').split(',').map((s) => s.trim()).filter(Boolean);
       setHTML(
         $('#profile-feedback'),
         `
         <div class="success-note">
           <strong>Profile saved to local session.</strong><br>
-          ${esc(draft.name)} · ${esc(draft.headline)} at ${esc(draft.company)}<br>
+          ${esc(draft.name)} · ${esc(draft.role_title)} at ${esc(draft.company)}<br>
+          ${draft.discipline ? `Discipline: ${esc(draft.discipline)} · ` : ''}${esc(draft.location)} · ${esc(draft.years)} years experience<br>
           <p>${esc(draft.about)}</p>
-          <div class="tags">${skills.map((s) => `<span class="tag">${esc(s)}</span>`).join('')}</div>
-          <p style="margin-top:10px;font-size:13px;color:#28743a;">✓ All privacy settings verified. Contact mode: ${esc(draft.contact_visibility)}.</p>
+          ${resume ? `<p style="font-size:13px;color:#515966;">📄 Résumé attached: ${esc(resume.name)}</p>` : ''}
+          <p style="margin-top:10px;font-size:13px;color:#28743a;">✓ Privacy protection active: Contact details are shared only on approved introductions.</p>
         </div>
       `,
       );
@@ -1016,16 +1019,10 @@ function renderProfile() {
 }
 
 // ---------------------------------------------------------------------------
-// Open Recruiter Preview Modal (Spec §4 step 8 / Spec §5 candidate screen 7)
+// Open Recruiter Preview Modal
 // ---------------------------------------------------------------------------
 function openRecruiterPreview(d) {
-  const skills = (d.skills || 'React, TypeScript, Product Design').split(',').map((s) => s.trim()).filter(Boolean);
-  const contactLabel = {
-    verified_recruiters: 'Visible to verified recruiters',
-    request_access: 'Available on request',
-    hidden: 'Private',
-  };
-
+  const roleName = d.role_title || 'Software Professional';
   setHTML(
     $('#preview-content'),
     `
@@ -1033,40 +1030,39 @@ function openRecruiterPreview(d) {
       <span class="avatar lilac">${initials(d.name || 'Preview User')}</span>
       <div>
         <h2>${esc(d.name || 'Your Full Name')}</h2>
-        <p>${esc(d.headline || 'Your Headline')} · Ex-${esc(d.company || 'Latest Company')}</p>
+        <p>${esc(roleName)} · Ex-${esc(d.company || 'Latest Company')}</p>
         <div class="candidate-meta">
           <span>${icon('pin')}${esc(d.location || 'Your Location')}</span>
           <span>${icon('briefcase')}${d.years || '0'} years experience</span>
           ${d.remote === 'on' || d.remote === true ? '<span>Open to remote</span>' : ''}
-          <span class="verified-badge">✓ Recruiter verification preview</span>
+          <span class="verified-badge">✓ Verified preview</span>
         </div>
       </div>
     </div>
 
     <div class="detail-section">
       <h3>About</h3>
-      <p>${esc(d.about || 'Your professional summary will be displayed here for verified hiring teams.')}</p>
-      <div class="tags">${skills.map((s) => `<span class="tag">${esc(s)}</span>`).join('')}</div>
+      <p>${esc(d.about || 'Your professional summary will be displayed here for hiring teams.')}</p>
+      ${d.discipline ? `<div class="tags"><span class="tag">${esc(d.discipline)}</span></div>` : ''}
     </div>
 
     <div class="detail-section">
       <h3>Work experience</h3>
       <div class="employment">
-        <strong>${esc(d.role_title || d.headline || 'Role')} · ${esc(d.company || 'Company')}</strong>
+        <strong>${esc(roleName)} · ${esc(d.company || 'Company')}</strong>
         <small>${esc(d.started_on || 'Start')} – ${esc(d.ended_on || 'Present')}</small>
-        ${d.short_description ? `<p style="margin:4px 0 0;font-size:13px;color:#666;">${esc(d.short_description)}</p>` : ''}
+        ${d.org_name ? `<small>${esc(d.org_name)}${d.team_name ? ' / ' + esc(d.team_name) : ''}</small>` : ''}
       </div>
     </div>
 
     <div class="detail-section">
-      <h3>Résumé & contact permissions</h3>
-      <p>Contact setting: <strong>${contactLabel[d.contact_visibility] || 'Available on request'}</strong></p>
-      <p>Résumé setting: <strong>${contactLabel[d.resume_visibility] || 'Private'}</strong></p>
-      <p class="muted">Recruiters will see a request button unless you configured immediate verified visibility.</p>
+      <h3>Contact permissions</h3>
+      <p>Contact request: <strong>Introduction required (default)</strong></p>
+      <p class="muted">Hiring teams introduce themselves and their role before your personal email or phone number are shared.</p>
     </div>
 
     <div class="notice" style="margin-top:20px;">
-      <strong>Privacy guarantee:</strong> Personal email (${esc(d.email || 'hidden')}), phone (${esc(d.phone || 'hidden')}), exit letters, salary slips, and manager LinkedIn are <strong>never</strong> rendered to recruiters.
+      <strong>Privacy guarantee:</strong> Personal email (${esc(d.email || 'hidden')}), phone (${esc(d.phone || 'hidden')}), exit letters, salary slips, and manager LinkedIn are <strong>never</strong> shown directly to hiring teams.
     </div>
   `,
   );
@@ -1075,34 +1071,47 @@ function openRecruiterPreview(d) {
 }
 
 // ---------------------------------------------------------------------------
-// Render recruiter profile page
+// Render hiring team / recruiter profile page
 // ---------------------------------------------------------------------------
-function renderRecruiterProfile() {
+function renderRecruiterProfile(switcherHtml) {
+  const profileContainer = $('#profile-page');
+  if (!profileContainer) return;
+
   setHTML(
-    $('#profile-page'),
+    profileContainer,
     `
     <div class="profile-layout">
-      <form id="recruiter-form" class="form-content">
-        <h2>Recruiter profile</h2>
-        <p class="muted">Set up your verified hiring profile to search candidates and request introductions.</p>
+      <div>
+        ${switcherHtml || ''}
+        <form id="recruiter-form" class="form-content">
+          <div class="form-header-badge">
+            <span class="status-pill pending">Hiring team profile</span>
+            <h2>Hiring team profile</h2>
+            <p class="muted">Set up your company profile to discover talent, build shortlists, and request candidate introductions.</p>
+          </div>
 
-        <div class="form-row">
-          <label>Full name<input name="name" required autocomplete="name"></label>
-          <label>Role title<input name="title" placeholder="e.g. Engineering Hiring Manager"></label>
-        </div>
-        <div class="form-row">
-          <label>Company<input name="company" required></label>
-          <label>Work email<input name="work_email" type="email" required placeholder="you@company.com"></label>
-        </div>
-        <label>LinkedIn URL<input name="linkedin_url" type="url" placeholder="https://www.linkedin.com/in/…"></label>
+          <div class="form-row">
+            <label>Full name<input name="name" required autocomplete="name" placeholder="First and last name"></label>
+            <label>Your role title<input name="title" required placeholder="e.g. Head of Talent, Engineering Manager, Founder"></label>
+          </div>
+          <div class="form-row">
+            <label>Hiring company<input name="company" required placeholder="Company or studio name"></label>
+            <label>Corporate work email<input name="work_email" type="email" required placeholder="you@company.com"></label>
+          </div>
+          <label>LinkedIn profile URL<input name="linkedin_url" type="url" placeholder="https://www.linkedin.com/in/..."></label>
 
-        <p class="form-note">Your work email is verified using an authentication challenge. It is never shared with candidates.</p>
+          <label>What roles are you hiring for?<textarea name="hiring_focus" rows="3" placeholder="e.g. We are hiring Senior Fullstack Engineers and Product Designers in Bengaluru and remote across APAC."></textarea></label>
 
-        <button class="button primary" type="submit">Save recruiter profile</button>
-        <div id="recruiter-feedback" role="status"></div>
-      </form>
+          <p class="form-note">Your work email is verified with a domain challenge. It ensures only genuine hiring teams access candidate introductions.</p>
 
-      <aside class="profile-aside">
+          <div class="profile-actions" style="margin-top:24px;">
+            <button class="button primary" type="submit">Save recruiter profile ↗</button>
+          </div>
+          <div id="recruiter-feedback" role="status"></div>
+        </form>
+      </div>
+
+      <aside class="profile-aside" style="margin-top: 76px;">
         ${icon('shield')}
         <h3>Verified hiring teams.</h3>
         <p>Company email verification ensures only legitimate hiring professionals can access candidate profiles.</p>
@@ -1113,17 +1122,35 @@ function renderRecruiterProfile() {
   `,
   );
 
+  // Restore recruiter draft values
+  if (recruiterDraft) {
+    for (const [k, v] of Object.entries(recruiterDraft)) {
+      const el = $('#recruiter-form')?.elements.namedItem(k);
+      if (el) el.value = v;
+    }
+  }
+
   const recruiterForm = $('#recruiter-form');
   if (recruiterForm) {
     recruiterForm.onsubmit = (e) => {
       e.preventDefault();
+      recruiterDraft = Object.fromEntries(new FormData(e.currentTarget));
       setHTML(
         $('#recruiter-feedback'),
-        '<div class="success-note">Recruiter profile saved. In the live platform, a verification email is sent to your corporate domain.</div>',
+        `
+        <div class="success-note">
+          <strong>Hiring team profile saved to preview session.</strong><br>
+          ${esc(recruiterDraft.name)} · ${esc(recruiterDraft.title)} at ${esc(recruiterDraft.company)}<br>
+          <span style="font-size:13px;color:#515966;">Corporate work email: ${esc(recruiterDraft.work_email)}</span><br>
+          <p style="margin-top:8px;font-size:13px;color:#28743a;">✓ Domain challenge queued: In the live platform, a verification email is sent to confirm corporate domain access.</p>
+        </div>
+      `,
       );
+      $('#recruiter-feedback')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // Render settings page (Safety, Data Export, Consent, Deletion)
@@ -1301,9 +1328,15 @@ async function renderSettings() {
 // ---------------------------------------------------------------------------
 document.addEventListener('click', (e) => {
   const t = e.target.closest(
-    '[data-page],[data-detail],[data-save],[data-close],[data-reset],[data-role],[data-toggle-note],[data-save-note],[data-cancel-note]',
+    '[data-page],[data-detail],[data-save],[data-close],[data-reset],[data-role],[data-switch-profile],[data-toggle-note],[data-save-note],[data-cancel-note]',
   );
   if (!t) return;
+
+  if (t.dataset.switchProfile) {
+    activeProfileType = t.dataset.switchProfile;
+    renderProfile();
+    return;
+  }
 
   if (t.dataset.page) {
     navigate(t.dataset.page);
@@ -1342,10 +1375,11 @@ document.addEventListener('click', (e) => {
 
   // Role dialog
   if (t.dataset.role) {
-    toast(`Selected: ${t.dataset.role}. Connect Supabase to complete setup.`);
+    activeProfileType = t.dataset.role;
     currentAccount = { account_type: t.dataset.role, full_name: 'Preview User' };
     $('#role-dialog')?.close();
     navigate('profile');
+    toast(`Selected: ${t.dataset.role === 'candidate' ? 'Job Seeker' : 'Hiring Team'} profile.`);
   }
 });
 
@@ -1596,10 +1630,50 @@ async function bootstrap() {
   }
 }
 
-// Candidate form Supabase submit handler
+// Profile form Supabase submit handlers (Candidate & Recruiter)
 document.addEventListener(
   'submit',
   async (event) => {
+    // 1. Hiring team / recruiter form
+    if (event.target.id === 'recruiter-form') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!isSupabaseConfigured) return;
+
+      const form = event.target;
+      const values = Object.fromEntries(new FormData(form));
+      const feedback = $('#recruiter-feedback');
+
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          try {
+            await signInWithEmail(values.work_email);
+            setHTML(
+              feedback,
+              '<div class="success-note">Check your corporate email for a secure sign-in link to verify your domain.</div>',
+            );
+          } catch (authError) {
+            toast(authError?.message || 'Could not send the verification link.');
+          }
+          return;
+        }
+
+        await saveRecruiterProfile({
+          company: values.company,
+          title: values.title,
+          workEmail: values.work_email,
+          linkedinUrl: values.linkedin_url || undefined,
+        });
+
+        setHTML(feedback, '<div class="success-note">Hiring team profile saved successfully. Corporate domain verification is active.</div>');
+      } catch (err) {
+        toast(err?.message || 'Could not save recruiter profile.');
+      }
+      return;
+    }
+
+    // 2. Job seeker / candidate form
     if (event.target.id !== 'candidate-form') return;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -1627,23 +1701,23 @@ document.addEventListener(
         return;
       }
 
-      // Save profile
+      // Save profile with sensible defaults for removed fields
       const profile = await saveCandidateProfile({
-        headline: values.headline,
+        headline: values.role_title || 'Software Professional',
         primaryRole: values.role_title,
         location: values.location,
-        yearsExperience: Number(values.years),
-        summary: values.about,
-        skills: values.skills.split(',').map((s) => s.trim()).filter(Boolean),
+        yearsExperience: Number(values.years) || 0,
+        summary: values.about || '',
+        skills: [],
         discipline: values.discipline,
         openToRemote: values.remote === 'on',
         availableFrom: values.available_from || undefined,
         preferredLocations: values.preferred_locations
           ? values.preferred_locations.split(',').map((s) => s.trim())
           : undefined,
-        industry: values.industry || undefined,
-        contactVisibility: values.contact_visibility,
-        resumeVisibility: values.resume_visibility,
+        industry: undefined,
+        contactVisibility: 'request_access',
+        resumeVisibility: 'request_access',
       });
 
       // Save private contacts
@@ -1664,7 +1738,7 @@ document.addEventListener(
           startedOn: values.started_on || undefined,
           endedOn: values.ended_on || undefined,
           isLatest: true,
-          shortDescription: values.short_description || undefined,
+          shortDescription: undefined,
         });
 
         // Save manager details (private)
@@ -1684,7 +1758,7 @@ document.addEventListener(
             layoffDate: values.layoff_date || undefined,
             lastWorkingDate: values.last_working_date || undefined,
             layoffCategory: values.layoff_category,
-            publicStatsConsent: values.stats_consent === 'on',
+            publicStatsConsent: true,
           });
         }
       }
@@ -1698,9 +1772,7 @@ document.addEventListener(
       if (salaryFile) await uploadDocument(profile.id, salaryFile, 'salary_slip');
 
       // Record consent
-      if (values.consent === 'on') {
-        await recordConsent('privacy_policy', '1.0');
-      }
+      await recordConsent('privacy_policy', '1.0');
 
       setHTML(feedback, '<div class="success-note">Your profile has been saved successfully.</div>');
     } catch (error) {

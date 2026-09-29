@@ -63,3 +63,16 @@
 .status-pill.scheduled{background:#fef3c7;color:#92400e}
 .status-pill.verified{background:#d1fae5;color:#065f46}
 .status-pill.pending{background:#e0f2fe;color:#0369a1}
+
+/* Profile type switcher tabs */
+.profile-type-switcher{display:flex;gap:12px;margin-bottom:28px;background:#f8f9fb;border:1px solid var(--line);padding:6px;border-radius:12px}
+.profile-type-tab{flex:1;display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:8px;border:1px solid transparent;background:transparent;text-align:left;cursor:pointer;transition:all .18s ease;color:var(--muted)}
+.profile-type-tab strong{display:block;font-size:14px;font-weight:600;color:#25272b}
+.profile-type-tab small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.profile-type-tab svg{width:22px;height:22px;color:var(--muted);flex-shrink:0}
+.profile-type-tab.active{background:#ffffff;border-color:#d8dde6;box-shadow:0 2px 8px rgba(0,0,0,0.04);color:var(--blue)}
+.profile-type-tab.active strong{color:var(--blue)}
+.profile-type-tab.active svg{color:var(--blue);stroke:var(--blue)}
+.form-header-badge{margin-bottom:22px}
+.form-header-badge h2{margin:8px 0 4px}
+@media(max-width:760px){.profile-type-switcher{flex-direction:column;gap:6px}}

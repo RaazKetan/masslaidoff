@@ -1,5 +1,7 @@
 # MassLaidOff architecture
 
+The production backend design, API surface, security model, deployment topology, and implementation phases are defined in `BACKEND_DESIGN.md`.
+
 ## Product architecture
 Candidate: create profile → add work experience and résumé → link former manager → choose visibility → approve recruiter introductions.
 Recruiter: browse directory → filter role, location, skills and experience → inspect profile → shortlist → request introduction.
@@ -38,4 +40,3 @@ The public candidate directory intentionally excludes personal email, work email
 2. Apply `supabase/migrations/202609290001_initial_schema.sql` to the Supabase project.
 3. Apply `supabase/migrations/202609290002_complete_schema.sql` to complete the schema (user_accounts, private_contacts, companies, skills, layoff_records, documents, contact flow, verification, metrics, and safety tables).
 4. Run `npm install`, then `npm run dev`.
-
