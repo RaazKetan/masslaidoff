@@ -1,4 +1,4 @@
-# NextSeat — DESIGN.md
+# MassLaidOff — DESIGN.md
 
 ## Current direction — September 28, 2026
 
@@ -10,7 +10,7 @@ The remaining sections are retained as the earlier design reference, not the act
 
 ## 1. Visual theme and atmosphere
 
-NextSeat is a private, respectful hiring workspace for people affected by layoffs and the teams hiring them. The experience should feel calm, credible, and efficient—not like a job-board marketplace, a social network, or a public “layoff wall.”
+MassLaidOff is a private, respectful hiring workspace for people affected by layoffs and the teams hiring them. The experience should feel calm, credible, and efficient—not like a job-board marketplace, a social network, or a public “layoff wall.”
 
 Design it as a focused work surface: dark by default, information-dense without feeling crowded, and intentionally restrained. Let the people and their skills be the visual focus.
 
@@ -135,4 +135,4 @@ Privacy is product behavior, not decorative copy.
 
 ## 10. Agent prompt
 
-> Build NextSeat as a dark, precise talent-directory workspace. Use layered charcoal surfaces, fine borders, compact controls, one violet accent, clear information hierarchy, and privacy-first candidate interactions. Keep the searchable directory visible immediately; avoid marketing-heavy layouts and decorative imagery.
+> Build MassLaidOff as a dark, precise talent-directory workspace. Use layered charcoal surfaces, fine borders, compact controls, one violet accent, clear information hierarchy, and privacy-first candidate interactions. Keep the searchable directory visible immediately; avoid marketing-heavy layouts and decorative imagery.

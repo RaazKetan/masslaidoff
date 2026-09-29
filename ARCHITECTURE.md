@@ -1,4 +1,4 @@
-# NextSeat — architecture first
+# MassLaidOff architecture
 
 ## Product architecture
 Candidate: create profile → add work experience and résumé → link former manager → choose visibility → approve recruiter introductions.
@@ -28,9 +28,14 @@ Browser → authenticated application API → relational database and private do
 - Reviews: relationship verification, first-person reviews, moderation, reports, correction workflow. No automatic publishing.
 Private contact fields never appear in directory API responses. Enforce record authorization on the server, keep provider credentials server-side, and audit sensitive reads and grants.
 
-## Implemented design prototype
-The interface now uses React islands built with Vite and official Magic UI components; see COMPONENTS.md. Source HTML lives at the project root, styles and behavior in src/, and dist/ is generated publication output.
-Static HTML, CSS and JavaScript. Fictional people and reviews. Search, filters, sorting, shortlist, profile details, introduction preview, candidate form, résumé selection and review preview work in the browser. Shortlists are device-local preferences. Personal information and selected files stay in page memory and reset on reload. No emails, uploads, identity verification, real LinkedIn imports or persistent backend are implemented.
+## Application stack
+React 19 and Vite power the client. Supabase provides passwordless authentication, Postgres, row-level security and private résumé storage. The initial schema lives in `supabase/migrations`; browser configuration is read from `.env.local`.
 
-## Visual architecture
-Google Sans, white canvas, pale navigation rail, charcoal text and restrained blue interactions. A persistent navigation rail leads into a two-column filter/directory workspace. Spacious rows make experience comparable. Mobile stacks the workspace, native dialogs provide focus containment, and controls have visible keyboard focus. This replaces the earlier dark visual direction in DESIGN.md for the current request.
+The public candidate directory intentionally excludes personal email, work email, phone and résumé paths. Those fields remain owner-only. Introduction requests require an authenticated, verified recruiter and candidate approval before any future contact grant is created.
+
+## Local setup
+1. Copy `.env.example` to `.env.local` and add the Supabase project URL and anon key.
+2. Apply `supabase/migrations/202609290001_initial_schema.sql` to the Supabase project.
+3. Apply `supabase/migrations/202609290002_complete_schema.sql` to complete the schema (user_accounts, private_contacts, companies, skills, layoff_records, documents, contact flow, verification, metrics, and safety tables).
+4. Run `npm install`, then `npm run dev`.
+

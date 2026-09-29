@@ -29,6 +29,6 @@ function MotionLayer(){
   });
   return()=>ctx.revert();
  },[]);
- return <ScrollProgress className="nextseat-scroll-progress" aria-hidden="true"/>;
+ return <ScrollProgress className="masslaidoff-scroll-progress" aria-hidden="true"/>;
 }
 createRoot(progress).render(<MotionLayer/>);

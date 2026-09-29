@@ -9,7 +9,7 @@
 .magic-hiring-panel{background:#e9f2ff!important;border-radius:32px}
 .magic-hiring-panel>div.bg-background{background:#e9f2ff}
 .magic-hiring-panel .hiring-panel{background:transparent;border-radius:0}
-.nextseat-scroll-progress{background:#0064e0;background-image:none;height:2px}
+.masslaidoff-scroll-progress{background:#0064e0;background-image:none;height:2px}
 @media(max-width:700px){.hero h1{font-size:49px;letter-spacing:-2.8px}}
 .navitem.magic-control>div.relative{display:flex;width:100%;align-items:center;gap:12px}
 .page-heading>div>p{font-size:16px;color:var(--muted);margin:0}

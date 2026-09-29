@@ -1,3 +1,6 @@
 node_modules/
 .sites-runtime/
 *.log
+.env
+.env.local
+.env.*.local
