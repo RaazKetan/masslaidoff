@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="472" height="104" viewBox="0 0 472 104" role="img" aria-labelledby="title desc">
+  <title id="title">masslaidoff</title>
+  <desc id="desc">MassLaidOff logo with a modular M symbol and lowercase wordmark.</desc>
+  <g transform="translate(4 4) scale(2)">
+    <rect x="2" y="2" width="44" height="44" rx="12" fill="#1A1A1A"/>
+    <g fill="#FFFFFF" opacity="0.16">
+      <path d="M8 8h5v5H8zM15 8h5v5h-5zM22 8h5v5h-5zM29 8h5v5h-5zM36 8h5v5h-5zM8 15h5v5H8zM15 15h5v5h-5zM22 15h5v5h-5zM29 15h5v5h-5zM36 15h5v5h-5zM8 22h5v5H8zM15 22h5v5h-5zM22 22h5v5h-5zM29 22h5v5h-5zM36 22h5v5h-5zM8 29h5v5H8zM15 29h5v5h-5zM22 29h5v5h-5zM29 29h5v5h-5zM36 29h5v5h-5zM8 36h5v5H8zM15 36h5v5h-5zM22 36h5v5h-5zM29 36h5v5h-5zM36 36h5v5h-5z"/>
+    </g>
+    <g fill="#FFFFFF">
+      <path d="M8 8h5v5H8zM36 8h5v5h-5zM8 15h5v5H8zM15 15h5v5h-5zM29 15h5v5h-5zM36 15h5v5h-5zM8 22h5v5H8zM36 22h5v5h-5zM8 29h5v5H8zM36 29h5v5h-5zM8 36h5v5H8zM36 36h5v5h-5z"/>
+    </g>
+    <rect x="22" y="22" width="5" height="5" rx="1.5" fill="#DFEBC9"/>
+  </g>
+  <text x="122" y="70" fill="#1A1612" font-family="Google Sans, Inter, Arial, sans-serif" font-size="48" font-weight="650" letter-spacing="-2.3">masslaidoff</text>
+</svg>

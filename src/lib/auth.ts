@@ -1,5 +1,5 @@
-import { requireSupabase, supabase } from './supabase';
-import type { AccountType, UserAccount, PrivateContacts } from './types';
+import { requireSupabase, supabase } from "./supabase";
+import type { AccountType } from "./types";
 
 /** Get the current authenticated user, or null */
 export async function getCurrentUser() {
@@ -8,25 +8,90 @@ export async function getCurrentUser() {
   return data.user ?? null;
 }
 
-/** Get the user's account record (includes account_type) */
-export async function getUserAccount(): Promise<UserAccount | null> {
-  const user = await getCurrentUser();
-  if (!user) return null;
-  const { data } = await requireSupabase()
-    .from('user_accounts')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle();
+/**
+ * Sign in an existing account with email and password. The page's audience is
+ * remembered so a first sign-in (e.g. a dashboard-created user with no role
+ * metadata) is onboarded with the right account type.
+ */
+export async function signInWithPassword(
+  email: string,
+  password: string,
+  accountType: AccountType,
+) {
+  sessionStorage.setItem("masslaidoff_account_type", accountType);
+  const { data, error } = await requireSupabase().auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error) throw error;
   return data;
 }
 
-/** Sign in with email magic link (OTP) */
-export async function signInWithEmail(email: string) {
-  const { error } = await requireSupabase().auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: `${window.location.origin}/workspace.html#profile` },
+/** Send the password recovery email for an existing account */
+export async function requestPasswordReset(email: string) {
+  const { error } = await requireSupabase().auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
   });
   if (error) throw error;
+}
+
+/** Set a new password after following a recovery link */
+export async function updatePassword(password: string) {
+  const { error } = await requireSupabase().auth.updateUser({ password });
+  if (error) throw error;
+}
+
+/** Create an account with email and password */
+export async function signUpWithPassword({
+  firstName,
+  lastName,
+  email,
+  password,
+  accountType,
+  redirectPath,
+}: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  accountType: AccountType;
+  redirectPath: string;
+}) {
+  const { data, error } = await requireSupabase().auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}${redirectPath}`,
+      data: {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        account_type: accountType,
+      },
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
+/** Continue with Google OAuth */
+export async function signInWithGoogle(
+  accountType: AccountType,
+  redirectPath: string,
+) {
+  sessionStorage.setItem("masslaidoff_account_type", accountType);
+  const { data, error } = await requireSupabase().auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}${redirectPath}`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
+    },
+  });
+  if (error) throw error;
+  return data;
 }
 
 /** Sign out the current user */
@@ -35,99 +100,11 @@ export async function signOut() {
   if (error) throw error;
 }
 
-/** Select a role and create the user_accounts + private_contacts records */
-export async function selectRole(
-  accountType: AccountType,
-  fullName: string,
-  email: string,
-): Promise<UserAccount> {
-  const client = requireSupabase();
-  const { data: authData } = await client.auth.getUser();
-  if (!authData.user) throw new Error('You must be signed in to select a role.');
-
-  const userId = authData.user.id;
-
-  // Create user_accounts row
-  const { data: account, error: accountError } = await client
-    .from('user_accounts')
-    .upsert({
-      id: userId,
-      account_type: accountType,
-      full_name: fullName,
-    }, { onConflict: 'id' })
-    .select()
-    .single();
-  if (accountError) throw accountError;
-
-  // Create private_contacts row
-  const { error: contactError } = await client
-    .from('private_contacts')
-    .upsert({
-      user_id: userId,
-      personal_email: email,
-    }, { onConflict: 'user_id' });
-  if (contactError) throw contactError;
-
-  return account;
-}
-
-/** Mark onboarding as completed */
-export async function completeOnboarding() {
-  const client = requireSupabase();
-  const { data: authData } = await client.auth.getUser();
-  if (!authData.user) throw new Error('Not signed in.');
-
-  const { error } = await client
-    .from('user_accounts')
-    .update({ onboarding_completed_at: new Date().toISOString() })
-    .eq('id', authData.user.id);
-  if (error) throw error;
-}
-
-/** Get private contacts for the current user */
-export async function getPrivateContacts(): Promise<PrivateContacts | null> {
-  const user = await getCurrentUser();
-  if (!user) return null;
-  const { data } = await requireSupabase()
-    .from('private_contacts')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle();
-  return data;
-}
-
-/** Update private contact information */
-export async function updatePrivateContacts(
-  fields: Partial<Omit<PrivateContacts, 'user_id'>>,
-) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Not signed in.');
-  const { error } = await requireSupabase()
-    .from('private_contacts')
-    .update(fields)
-    .eq('user_id', user.id);
-  if (error) throw error;
-}
-
-/** Record privacy consent */
-export async function recordConsent(consentType: string, policyVersion: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Not signed in.');
-  const { error } = await requireSupabase()
-    .from('consent_records')
-    .insert({
-      user_id: user.id,
-      consent_type: consentType,
-      policy_version: policyVersion,
-    });
-  if (error) throw error;
-}
-
 /** Listen for auth state changes */
-export function onAuthStateChange(callback: (user: unknown) => void) {
+export function onAuthStateChange(callback: (event: string, user: unknown) => void) {
   if (!supabase) return { unsubscribe: () => {} };
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-    callback(session?.user ?? null);
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    callback(event, session?.user ?? null);
   });
   return data.subscription;
 }

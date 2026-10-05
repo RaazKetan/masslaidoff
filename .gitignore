@@ -1,6 +1,8 @@
 node_modules/
+dist/
 .sites-runtime/
 *.log
 .env
 .env.local
 .env.*.local
+.vercel

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">MassLaidOff mark</title>
+  <desc id="desc">A modular letter M built on a five by five grid, representing talent reconnecting to opportunity.</desc>
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="#1A1A1A"/>
+
+  <g fill="#FFFFFF" opacity="0.16">
+    <rect x="8" y="8" width="5" height="5" rx="1.5"/>
+    <rect x="15" y="8" width="5" height="5" rx="1.5"/>
+    <rect x="22" y="8" width="5" height="5" rx="1.5"/>
+    <rect x="29" y="8" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="8" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="15" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="22" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="29" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="22" width="5" height="5" rx="1.5"/>
+    <rect x="15" y="22" width="5" height="5" rx="1.5"/>
+    <rect x="22" y="22" width="5" height="5" rx="1.5"/>
+    <rect x="29" y="22" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="22" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="29" width="5" height="5" rx="1.5"/>
+    <rect x="15" y="29" width="5" height="5" rx="1.5"/>
+    <rect x="22" y="29" width="5" height="5" rx="1.5"/>
+    <rect x="29" y="29" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="29" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="36" width="5" height="5" rx="1.5"/>
+    <rect x="15" y="36" width="5" height="5" rx="1.5"/>
+    <rect x="22" y="36" width="5" height="5" rx="1.5"/>
+    <rect x="29" y="36" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="36" width="5" height="5" rx="1.5"/>
+  </g>
+
+  <g fill="#FFFFFF">
+    <rect x="8" y="8" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="8" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="15" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="29" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="15" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="22" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="22" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="29" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="29" width="5" height="5" rx="1.5"/>
+    <rect x="8" y="36" width="5" height="5" rx="1.5"/>
+    <rect x="36" y="36" width="5" height="5" rx="1.5"/>
+  </g>
+
+  <rect x="22" y="22" width="5" height="5" rx="1.5" fill="#B9D6FF"/>
+</svg>

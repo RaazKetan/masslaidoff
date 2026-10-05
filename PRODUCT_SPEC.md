@@ -99,8 +99,8 @@ The administrator can:
 2. Verify the primary login method.
 3. Enter basic professional information.
 4. Add the latest company, role, team or organization, dates, and layoff details.
-5. Optionally verify employment using a former company email or document.
-6. Upload a resume and optional supporting documents.
+5. Upload a resume and optional supporting documents.
+6. Verify a former company email only when starting a manager review.
 7. Choose resume and contact visibility.
 8. Preview exactly what recruiters will see.
 9. Publish the profile.
@@ -118,11 +118,13 @@ The administrator can:
 
 ### Manager review journey
 
-1. A candidate selects one of their employment records.
-2. They enter the manager's name and LinkedIn URL privately.
-3. They submit structured ratings and a first-person written review.
-4. The review enters moderation.
-5. The published review does not expose the author's identity, candidate profile, or manager LinkedIn URL.
+1. A candidate must already have a saved employment record.
+2. They verify control of a former company inbox using a single-use link.
+3. They upload an exit or relieving letter, or a salary slip, as private employment evidence.
+4. They enter the manager's name and LinkedIn URL privately.
+5. They submit structured ratings and a first-person written review for the company in their latest employment record.
+6. The review enters moderation.
+7. The published review does not expose the author's identity, candidate profile, company email, or manager LinkedIn URL.
 
 ## 5. Information visibility
 
@@ -219,10 +221,10 @@ Email, phone, and resume visibility should be independently configurable.
 - Availability date
 - Exact organization and team
 - Additional employment history
-- Company email verification
 - Exit letter
 - Last-month salary slip
-- Manager name and LinkedIn URL
+
+Company email verification and manager identity are collected in the manager review flow, not in the general candidate profile form.
 
 ## 8. Recruiter search filters
 
@@ -648,6 +650,8 @@ A candidate can be marked employment-verified using one of the following:
 3. A salary slip plus one additional matching signal, reviewed manually.
 
 A LinkedIn URL alone is not verification evidence. Candidates can still publish as unverified when they meet the normal profile requirements; the interface displays an accurate verification status instead of blocking participation.
+
+Submitting a manager review has a stricter rule than publishing a candidate profile. It requires both a verified former company inbox and a private exit letter or salary slip. The review company must match the latest employment record, and every review remains pending until moderation.
 
 Recruiters must verify a current company email. Exceptions require manual administrative review.
 

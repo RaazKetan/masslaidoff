@@ -1,5 +1,5 @@
 -- =============================================================================
--- MassLaidOff — Complete schema migration
+-- MassLaidOff - Complete schema migration
 -- Builds on 202609290001_initial_schema.sql
 -- Aligns the database with PRODUCT_SPEC.md sections 9–12
 -- =============================================================================
@@ -25,7 +25,7 @@ create type public.report_status        as enum ('open', 'investigating', 'resol
 create type public.deletion_status      as enum ('requested', 'scheduled', 'completed', 'cancelled');
 
 -- ---------------------------------------------------------------------------
--- 2. user_accounts — common identity (spec §10)
+-- 2. user_accounts - common identity (spec §10)
 -- ---------------------------------------------------------------------------
 create table public.user_accounts (
   id                      uuid primary key references auth.users(id) on delete cascade,
@@ -45,7 +45,7 @@ create policy "users manage own account"
   with check (auth.uid() = id);
 
 -- ---------------------------------------------------------------------------
--- 3. private_contacts — separated from candidate_profiles (spec §10, §11)
+-- 3. private_contacts - separated from candidate_profiles (spec §10, §11)
 -- ---------------------------------------------------------------------------
 create table public.private_contacts (
   user_id                   uuid primary key references public.user_accounts(id) on delete cascade,
@@ -66,7 +66,7 @@ create policy "users manage own contacts"
   with check (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
--- 4. companies — canonical company records (spec §10)
+-- 4. companies - canonical company records (spec §10)
 -- ---------------------------------------------------------------------------
 create table public.companies (
   id           uuid primary key default gen_random_uuid(),
@@ -89,7 +89,7 @@ create policy "companies are readable"
   on public.companies for select using (true);
 
 -- ---------------------------------------------------------------------------
--- 5. Alter candidate_profiles — remove private fields, add spec fields
+-- 5. Alter candidate_profiles - remove private fields, add spec fields
 -- ---------------------------------------------------------------------------
 -- Migrate existing data to private_contacts first (if any rows exist)
 do $$
@@ -128,7 +128,7 @@ alter table public.candidate_profiles
   add column if not exists industry             text;
 
 -- ---------------------------------------------------------------------------
--- 6. skills / candidate_skills — normalized (spec §10)
+-- 6. skills / candidate_skills - normalized (spec §10)
 -- ---------------------------------------------------------------------------
 create table public.skills (
   id       uuid primary key default gen_random_uuid(),
@@ -197,7 +197,7 @@ insert into public.skills (name, slug, category) values
 on conflict (slug) do nothing;
 
 -- ---------------------------------------------------------------------------
--- 7. Alter employments — add company_id, move private fields
+-- 7. Alter employments - add company_id, move private fields
 -- ---------------------------------------------------------------------------
 do $$
 begin
@@ -259,7 +259,7 @@ create policy "owners manage private employment details"
   ));
 
 -- ---------------------------------------------------------------------------
--- 8. layoff_records — defining product feature (spec §10)
+-- 8. layoff_records - defining product feature (spec §10)
 -- ---------------------------------------------------------------------------
 create table public.layoff_records (
   id                   uuid primary key default gen_random_uuid(),
@@ -311,7 +311,7 @@ create policy "candidates manage own documents"
   with check (exists (select 1 from public.candidate_profiles cp where cp.id = candidate_id and cp.user_id = auth.uid()));
 
 -- ---------------------------------------------------------------------------
--- 10. Alter recruiter_profiles — add company FK, verification
+-- 10. Alter recruiter_profiles - add company FK, verification
 -- ---------------------------------------------------------------------------
 alter table public.recruiter_profiles
   add column if not exists company_id           uuid references public.companies(id),
@@ -324,13 +324,13 @@ create policy "verified recruiters are visible"
   using (verified_at is not null or auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
--- 11. Alter shortlist_entries — add private_note
+-- 11. Alter shortlist_entries - add private_note
 -- ---------------------------------------------------------------------------
 alter table public.shortlist_entries
   add column if not exists private_note text;
 
 -- ---------------------------------------------------------------------------
--- 12. candidate_views — recruiter audit trail (spec §10)
+-- 12. candidate_views - recruiter audit trail (spec §10)
 -- ---------------------------------------------------------------------------
 create table public.candidate_views (
   id              uuid primary key default gen_random_uuid(),
@@ -417,7 +417,7 @@ create policy "candidates revoke grants"
                  where cp.id = candidate_id and cp.user_id = auth.uid()));
 
 -- ---------------------------------------------------------------------------
--- 14. Alter manager_reviews — add structured ratings (spec §10)
+-- 14. Alter manager_reviews - add structured ratings (spec §10)
 -- ---------------------------------------------------------------------------
 alter table public.manager_reviews
   add column if not exists employment_id        uuid references public.employments(id) on delete set null,
@@ -428,6 +428,25 @@ alter table public.manager_reviews
   add column if not exists review_title         text,
   add column if not exists moderation_notes     text,
   add column if not exists published_at         timestamptz;
+
+-- Published manager reviews require an authenticated account with a verified
+-- company email. Authors may always read their own submissions.
+drop policy if exists "published reviews are readable" on public.manager_reviews;
+create policy "authenticated users read published or own reviews"
+  on public.manager_reviews for select to authenticated
+  using (
+    auth.uid() = author_id
+    or (
+      status = 'published'
+      and exists (
+        select 1
+        from public.private_contacts pc
+        where pc.user_id = auth.uid()
+          and pc.company_email_verified_at is not null
+      )
+    )
+  );
+revoke select on public.manager_reviews from anon;
 
 -- Rename 'review' to 'review_body' for clarity (keep original for compatibility)
 -- We'll use review_body in new code, existing 'review' column stays
@@ -470,7 +489,7 @@ create policy "users submit verification evidence"
                       where vr.id = verification_request_id and vr.user_id = auth.uid()));
 
 -- ---------------------------------------------------------------------------
--- 16. public_metrics_daily — precomputed stats (spec §10, §13)
+-- 16. public_metrics_daily - precomputed stats (spec §10, §13)
 -- ---------------------------------------------------------------------------
 create table public.public_metrics_daily (
   id                     uuid primary key default gen_random_uuid(),
@@ -590,7 +609,7 @@ create policy "system inserts audit events"
 -- Drop the old view
 drop view if exists public.candidate_directory;
 
--- candidate_directory: safe searchable fields only — NO private data
+-- candidate_directory: safe searchable fields only - NO private data
 create view public.candidate_directory with (security_invoker = true) as
 select
   cp.id,
@@ -677,12 +696,13 @@ select
   )) as has_resume
 from public.candidate_directory cd;
 
--- public_manager_reviews: published reviews without author or manager LinkedIn
-create view public.public_manager_reviews with (security_invoker = true) as
+-- public_manager_reviews excludes author, manager name, and manager LinkedIn.
+-- It still requires a verified company email through manager_reviews RLS.
+create view public.public_manager_reviews
+with (security_invoker = true, security_barrier = true) as
 select
   mr.id,
-  mr.manager_name,
-  c.name as company_name,
+  coalesce(c.name, mr.company) as company_name,
   mr.relationship,
   mr.rating,
   mr.leadership_rating,
@@ -697,6 +717,36 @@ from public.manager_reviews mr
 left join public.employments e on e.id = mr.employment_id
 left join public.companies c on c.id = e.company_id
 where mr.status = 'published';
+
+revoke all on public.public_manager_reviews from public;
+revoke all on public.public_manager_reviews from anon;
+grant select on public.public_manager_reviews to authenticated;
+
+-- Authenticated users may resolve the manager name. LinkedIn and author identity
+-- remain excluded from this view.
+create view public.authenticated_manager_reviews
+with (security_invoker = true, security_barrier = true) as
+select
+  mr.id,
+  mr.manager_name,
+  coalesce(c.name, mr.company) as company_name,
+  mr.relationship,
+  mr.rating,
+  mr.leadership_rating,
+  mr.communication_rating,
+  mr.fairness_rating,
+  mr.career_growth_rating,
+  mr.review_title,
+  mr.review as review_body,
+  mr.published_at,
+  mr.created_at
+from public.manager_reviews mr
+left join public.employments e on e.id = mr.employment_id
+left join public.companies c on c.id = e.company_id
+where mr.status = 'published';
+
+revoke all on public.authenticated_manager_reviews from public, anon;
+grant select on public.authenticated_manager_reviews to authenticated;
 
 -- public_platform_metrics: thresholded aggregate data
 create view public.public_platform_metrics with (security_invoker = true) as
